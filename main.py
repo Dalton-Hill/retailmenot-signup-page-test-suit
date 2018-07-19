@@ -15,9 +15,6 @@ class TestSignUpPage(TestCase):
         self.driver.quit()
 
     def testLogInOptionPresent(self):
-        """
-        Ensures "Log In" link is available on the Sign Up page and also that the link takes you to the correct login url
-        """
         try:
             log_in = self.driver.find_element_by_xpath("//a[@data-qa='log-in-link']")
             log_in.click()
@@ -26,9 +23,6 @@ class TestSignUpPage(TestCase):
             self.fail("Link with the text 'Log In' not found on page")
 
     def testEmailPasswordSignupPresent(self):
-        """
-        Ensures Sign Up page contains the following fields/Elements: Email, Password and SignUp
-        """
         try:
             self.driver.find_element_by_xpath("//input[@data-qa='email-input']")
         except NoSuchElementException:
