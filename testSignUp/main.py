@@ -2,18 +2,14 @@ import time
 from unittest import TestCase
 from selenium.webdriver import Chrome
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.keys import Keys
 
-
-# Note: I noticed the fields/links have a "data-qa" html attribute: in practice I'd use this as it seems your developers
-# explicitly put this in for tests, however, I wanted to give a demonstration of how I'd accomplish these problems
-# without this help
 
 class TestSignUpPage(TestCase):
-    register_url = "https://secure.retailmenot.com/accounts/register"
 
     def setUp(self):
         self.driver = Chrome(executable_path="/home/dalton/Downloads/chromedriver")
-        self.driver.get('https://secure.retailmenot.com/accounts/register')
+        self.driver.get("https://secure.retailmenot.com/accounts/register")
 
     def tearDown(self):
         self.driver.quit()
@@ -78,11 +74,42 @@ class TestSignUpPage(TestCase):
         except NoSuchElementException:
             self.fail("Could not find Sign Up button")
 
-# test ensure invalid email address displays error message and sign up still disabled (USE MULTIPLE INVALID TYPES)
-# test ensure invalid password raises error (USE MULTIPLE)
+    def testInvalidEmailThrowsErrors(self):
+        try:
+            email_input = self.driver.find_element_by_xpath("//input[@data-qa='email-input']")
+            email_input.send_keys("invalid email")
+            email_input.send_keys(Keys.TAB)
+            email_error = self.driver.find_element_by_xpath("//form/div/ul/li")
+            self.assertEqual("Please enter a valid email address", email_error.text)
+        except NoSuchElementException:
+            self.fail("Failed to find either the email_input or email_error")
 
-# test ensure invalid email + valid password sign up still gray
-# test ensure valid email + invalid password sign up still gray
-# test ensure valid + valid sign up is clickable and returns expected text
+    def testShortPasswordThrowsErrors(self):
+        try:
+            password_input = self.driver.find_element_by_xpath("//input[@data-qa='password-input']")
+            password_input.send_keys("short")
+            password_input.send_keys(Keys.TAB)
+            password_errors = self.driver.find_elements_by_xpath("//form/div[2]/ul/li")
+            short_error = password_errors[0]
+            self.assertEqual("Password must be 8 characters or more", short_error.text.strip())
+        except NoSuchElementException:
+            self.fail("Failed to find either the password_input or password_errors")
 
-# test ensure duplicate email raises error
+    def testFormNotValidUntilCompletelyFilledOut(self):
+        invalid_background_color = "rgba(211, 211, 211, 1)"
+        valid_background_color = "rgba(36, 183, 227, 1)"
+        try:
+            email = self.driver.find_element_by_xpath("//input[@data-qa='email-input']")
+            password = self.driver.find_element_by_xpath("//input[@data-qa='password-input']")
+            submit = self.driver.find_element_by_xpath("//button[@data-qa='submit-button']")
+
+            email.send_keys("dalton.hill2022@gmail.com")
+            self.assertEqual(submit.value_of_css_property("background-color"), invalid_background_color)
+            password.send_keys("mostSecurePassword1")
+            time.sleep(.5)
+            self.assertEqual(submit.value_of_css_property("background-color"), valid_background_color)
+
+        except NoSuchElementException:
+            self.fail("Failed to find the email, password, or submit elements.")
+
+
